@@ -1,0 +1,32 @@
+{
+  "name": "questions-answers-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node .",
+    "server-dev": "npx nodemon --watch server server/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fox-sdc/Questions-Answers-API.git"
+  },
+  "author": "Cody",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fox-sdc/Questions-Answers-API/issues"
+  },
+  "homepage": "https://github.com/fox-sdc/Questions-Answers-API#readme",
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "pg": "^8.7.3",
+    "express": "^4.17.3"
+  },
+  "devDependencies": {
+    "eslint": "^8.13.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "nodemon": "^2.0.15"
+  }
+}
