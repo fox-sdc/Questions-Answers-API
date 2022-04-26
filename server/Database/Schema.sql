@@ -1,15 +1,15 @@
 DROP TABLE IF EXISTS Questions;
 
 CREATE TABLE Questions (
-  id INTEGER NOT NULL,
+  question_id SERIAL NOT NULL,
   product_id INTEGER NOT NULL,
-  body VARCHAR(400) NOT NULL,
-  date_written BIGINT NOT NULL,
+  question_body VARCHAR(400) NOT NULL,
+  question_date BIGINT NOT NULL,
   asker_name VARCHAR(200) NOT NULL,
   email VARCHAR(200) NOT NULL,
   reported BOOLEAN NOT NULL,
-  helpful INTEGER NOT NULL,
-  PRIMARY KEY (id)
+  question_helpfulness INTEGER NOT NULL,
+  PRIMARY KEY (question_id)
 );
 
 -- ---
@@ -20,15 +20,15 @@ CREATE TABLE Questions (
 DROP TABLE IF EXISTS Answers;
 
 CREATE TABLE Answers (
-  id INTEGER NOT NULL,
+  answer_id SERIAL NOT NULL,
   Questions_id INTEGER NOT NULL,
   body VARCHAR(400) NOT NULL,
-  date_written BIGINT NOT NULL,
+  date BIGINT NOT NULL,
   answerer_name VARCHAR(200) NOT NULL,
   email VARCHAR(200) NOT NULL,
   reported BOOLEAN NOT NULL,
-  helpful INTEGER NOT NULL,
-  PRIMARY KEY (id)
+  helpfulness INTEGER NOT NULL,
+  PRIMARY KEY (answer_id)
 );
 
 -- ---
@@ -39,9 +39,9 @@ CREATE TABLE Answers (
 DROP TABLE IF EXISTS Answers_Photos;
 
 CREATE TABLE Answers_Photos (
-  id INTEGER NOT NULL,
+  id SERIAL NOT NULL,
   id_Answers INTEGER NOT NULL,
-  photo_url VARCHAR(400) NOT NULL,
+  url VARCHAR(400) NOT NULL DEFAULT NULL,
   PRIMARY KEY (id)
 );
 
@@ -49,5 +49,5 @@ CREATE TABLE Answers_Photos (
 -- Foreign Keys
 -- ---
 
-ALTER TABLE Answers ADD FOREIGN KEY (Questions_id) REFERENCES Questions (id);
-ALTER TABLE Answers_Photos ADD FOREIGN KEY (id_Answers) REFERENCES Answers (id);
+ALTER TABLE Answers ADD FOREIGN KEY (Questions_id) REFERENCES Questions (question_id);
+ALTER TABLE Answers_Photos ADD FOREIGN KEY (id_Answers) REFERENCES Answers (answer_id);
