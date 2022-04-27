@@ -7,8 +7,8 @@ const model = require('./model');
 // questions
 router.get('/qa/questions', async (req, res) => {
   try {
-    const { product_id, page = [1], count = [5] } = req.query;
-    const currentQ = await model.getQuestions(product_id, page, count);
+    const { product_id, page = 1, count = 5 } = req.query;
+    const currentQ = await model.getQuestions(product_id, page - 1, count);
     const questionQuery = { product_id: product_id, results: currentQ.rows };
     res.status(200).send(questionQuery);
   } catch (err) {
@@ -22,7 +22,7 @@ router.get('/qa/questions/:question_id/answers', async (req, res) => {
   try {
     const { question_id } = req.params;
     const { page = 1, count = 5 } = req.query;
-    const currentA = await model.getAnswers(question_id, page, count);
+    const currentA = await model.getAnswers(question_id, page - 1, count);
     const answerQuery = { question: question_id, page: page, count: count, results: currentA.rows }
     res.status(200).send(answerQuery);
   } catch (err) {
@@ -35,8 +35,10 @@ router.get('/qa/questions/:question_id/answers', async (req, res) => {
 // questions
 router.post('/qa/questions', async (req, res) => {
   try {
-    const { body, name, email, product_id } = req.query;
-    await model.postQuestion(product_id, body, name, email);
+    const { body, name, email, product_id } = req.body;
+    const date = Date.now();
+    const quest = await model.postQuestion(body, name, email, product_id, date);
+    console.log(quest);
     res.sendStatus(201);
   } catch (err) {
     res.sendStatus(400);
@@ -48,8 +50,10 @@ router.post('/qa/questions', async (req, res) => {
 router.post('/qa/questions/:question_id/answers', async (req, res) => {
   try {
     const { question_id } = req.params;
-    const { body, name, email, photos } = req.query;
-    await model.postQuestion(question_id, body, name, email, photos);
+    const { body, name, email, photos } = req.body;
+    console.log(body, name, email, question_id);
+    const date = Date.now();
+    await model.postAnswer(question_id, body, name, email, photos, date);
     res.sendStatus(201);
   } catch (err) {
     res.sendStatus(400);

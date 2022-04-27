@@ -6,18 +6,30 @@ const pool = new Pool({
   database: process.env.DB,
   port: process.env.DBPORT,
 });
-const buildQuery = (text, values) => {
-  const query = {};
-  query.text = text;
-  query.values = values;
-  return query;
+
+const insertPhotos = (id, photos) => {
+  let sPhotos = '[';
+  for (let i = 0; i < photos.length - 1; i += 1) {
+    sPhotos += `'${photos[i]}'`;
+    sPhotos += ',';
+  }
+  sPhotos += `'${photos[photos.length - 1]}'`;
+  sPhotos += ']';
+  const text = `
+      DO $do$
+        DECLARE
+          array_urls text[]:= ARRAY ${sPhotos};
+          var text;
+        BEGIN
+          FOREACH var IN ARRAY array_urls
+          LOOP
+            INSERT INTO Answers_Photos(id_answers, url) VALUES(${id}, var);
+          END LOOP;
+      END $do$;
+    `;
+  pool.query(text);
 };
 
-// const text = `SELECT * FROM Questions WHERE product_id = ${product_id}`;
-// pool.query(buildQuery(text, [page, count]))
-//   .then((res) => {
-//     return res.rows;
-//   });
 module.exports = {
   getQuestions(pid, page, count) {
     const text = `SELECT question_id,
@@ -50,12 +62,17 @@ module.exports = {
                         FROM Answers
                         LEFT JOIN Answers_Photos
                         ON Answers.answer_id = Answers_Photos.id_Answers
-                        WHERE Answers.Questions_id = Questions.question_id
+                        WHERE Answers.id_questions = Questions.question_id
                     )answers
                   )answers
                   FROM Questions
-                  WHERE Questions.product_id = ${pid}`;
-    return pool.query(text);
+                  WHERE Questions.product_id = $1
+                  AND reported = false
+                  LIMIT $3
+                  OFFSET $2`;
+    const offset = page * count;
+    const value = [pid, offset, count];
+    return pool.query(text, value);
   },
 
   getAnswers(question_id, page, count) {
@@ -79,30 +96,55 @@ module.exports = {
     return pool.query(text);
   },
 
-  postQuestion(product_id, body, name, email) {
+  postQuestion(body, name, email, product_id, date) {
+    const text = `INSERT INTO Questions(product_id, question_body, question_date, asker_name, email, reported, question_helpfulness)
+                  VALUES($1, $2, $3, $4, $5, false, 0)`;
+    const values = [product_id, body, date, name, email];
 
+    return pool.query(text, values);
   },
 
-  postQuestion(question_id, body, name, email, photos) {
-
+  postAnswer(question_id, body, name, email, photos, date) {
+    const text = `INSERT INTO Answers(id_questions, body, date, answerer_name, email, reported, helpfulness)
+                  VALUES($1, $2, $3, $4, $5, false, 0) RETURNING answer_id`;
+    const values = [question_id, body, date, name, email];
+    return pool.query(text, values)
+      .then((res) => {
+        if (photos.length) {
+          insertPhotos(res.rows[0].answer_id, photos);
+        }
+      });
   },
 
   updateQHelpful(question_id) {
-
+    const text = `UPDATE Questions
+                  SET question_helpfulness= question_helpfulness + 1
+                  WHERE question_id = $1`;
+    const value = [question_id];
+    pool.query(text, value);
   },
 
   reportQuestion(question_id) {
-
+    const text = `UPDATE Questions
+                  SET reported = true
+                  WHERE question_id = $1`;
+    const value = [question_id];
+    pool.query(text, value);
   },
 
   updateAHelpful(answer_id) {
-
+    const text = `UPDATE Answers
+                  SET helpfulness= helpfulness + 1
+                  WHERE answer_id = $1`;
+    const value = [answer_id];
+    pool.query(text, value);
   },
 
   reportAnswer(answer_id) {
-
+    const text = `UPDATE Answers
+                  SET reported = true
+                  WHERE answer_id = $1`;
+    const value = [answer_id];
+    pool.query(text, value);
   },
-
 };
-// pool.query(`SELECT * FROM Questions WHERE product_id = ${product_id}`)
-// pool.query(`SELECT * FROM Answers a, Answers_Photos p WHERE a.Questions_id = ${question_id} AND p.id_Answers = a.id`);
