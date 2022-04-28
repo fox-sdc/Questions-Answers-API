@@ -2,8 +2,10 @@ require('dotenv').config();
 const { Pool } = require('pg');
 
 const pool = new Pool({
-  user: process.env.USER,
+  user: process.env.DBUSER,
+  host: process.env.DBHOST,
   database: process.env.DB,
+  password: process.env.PASS,
   port: process.env.DBPORT,
 });
 
@@ -27,7 +29,10 @@ const insertPhotos = (id, photos) => {
           END LOOP;
       END $do$;
     `;
-  pool.query(text);
+  pool.query(text)
+    .catch((err) => {
+      console.error(err);
+    });
 };
 
 module.exports = {
@@ -68,11 +73,14 @@ module.exports = {
                   FROM Questions
                   WHERE Questions.product_id = $1
                   AND reported = false
-                  LIMIT $3
-                  OFFSET $2`;
+                  LIMIT $2
+                  OFFSET $3`;
     const offset = page * count;
-    const value = [pid, offset, count];
-    return pool.query(text, value);
+    const value = [pid, count, offset];
+    return pool.query(text, value)
+      .catch((err) => {
+        console.error(err);
+      });
   },
 
   getAnswers(question_id, page, count) {
@@ -92,8 +100,16 @@ module.exports = {
                   FROM Answers
                   LEFT JOIN Answers_Photos
                   ON Answers.answer_id = Answers_Photos.id_Answers
-                  WHERE Answers.Questions_id = ${question_id}`;
-    return pool.query(text);
+                  WHERE Answers.id_questions = $1
+                  AND reported = false
+                  LIMIT $2
+                  OFFSET $3`;
+    const offset = page * count;
+    const value = [question_id, count, offset];
+    return pool.query(text, value)
+      .catch((err) => {
+        console.error(err);
+      });
   },
 
   postQuestion(body, name, email, product_id, date) {
@@ -101,7 +117,10 @@ module.exports = {
                   VALUES($1, $2, $3, $4, $5, false, 0)`;
     const values = [product_id, body, date, name, email];
 
-    return pool.query(text, values);
+    return pool.query(text, values)
+      .catch((err) => {
+        console.error(err);
+      });
   },
 
   postAnswer(question_id, body, name, email, photos, date) {
@@ -113,6 +132,9 @@ module.exports = {
         if (photos.length) {
           insertPhotos(res.rows[0].answer_id, photos);
         }
+      })
+      .catch((err) => {
+        console.error(err);
       });
   },
 
@@ -121,7 +143,10 @@ module.exports = {
                   SET question_helpfulness= question_helpfulness + 1
                   WHERE question_id = $1`;
     const value = [question_id];
-    pool.query(text, value);
+    pool.query(text, value)
+      .catch((err) => {
+        console.error(err);
+      });
   },
 
   reportQuestion(question_id) {
@@ -129,7 +154,10 @@ module.exports = {
                   SET reported = true
                   WHERE question_id = $1`;
     const value = [question_id];
-    pool.query(text, value);
+    pool.query(text, value)
+      .catch((err) => {
+        console.error(err);
+      });
   },
 
   updateAHelpful(answer_id) {
@@ -137,7 +165,10 @@ module.exports = {
                   SET helpfulness= helpfulness + 1
                   WHERE answer_id = $1`;
     const value = [answer_id];
-    pool.query(text, value);
+    pool.query(text, value)
+      .catch((err) => {
+        console.error(err);
+      });
   },
 
   reportAnswer(answer_id) {
@@ -145,6 +176,9 @@ module.exports = {
                   SET reported = true
                   WHERE answer_id = $1`;
     const value = [answer_id];
-    pool.query(text, value);
+    pool.query(text, value)
+      .catch((err) => {
+        console.error(err);
+      });
   },
 };
