@@ -23,7 +23,7 @@ router.get('/qa/questions/:question_id/answers', async (req, res) => {
     const { question_id } = req.params;
     const { page = 1, count = 5 } = req.query;
     const currentA = await model.getAnswers(question_id, page - 1, count);
-    const answerQuery = { question: question_id, page: page, count: count, results: currentA.rows }
+    const answerQuery = { question: question_id, page: page, count: count, results: currentA.rows };
     res.status(200).send(answerQuery);
   } catch (err) {
     res.sendStatus(400);
@@ -37,8 +37,7 @@ router.post('/qa/questions', async (req, res) => {
   try {
     const { body, name, email, product_id } = req.body;
     const date = Date.now();
-    const quest = await model.postQuestion(body, name, email, product_id, date);
-    console.log(quest);
+    await model.postQuestion(body, name, email, product_id, date);
     res.sendStatus(201);
   } catch (err) {
     res.sendStatus(400);
@@ -51,7 +50,6 @@ router.post('/qa/questions/:question_id/answers', async (req, res) => {
   try {
     const { question_id } = req.params;
     const { body, name, email, photos } = req.body;
-    console.log(body, name, email, question_id);
     const date = Date.now();
     await model.postAnswer(question_id, body, name, email, photos, date);
     res.sendStatus(201);
