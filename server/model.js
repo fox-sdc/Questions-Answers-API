@@ -101,6 +101,7 @@ module.exports = {
                   LEFT JOIN Answers_Photos
                   ON Answers.answer_id = Answers_Photos.id_Answers
                   WHERE Answers.id_questions = $1
+                  AND reported = false
                   LIMIT $2
                   OFFSET $3`;
     const offset = page * count;
